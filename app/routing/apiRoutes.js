@@ -1,22 +1,43 @@
+  // variable to hold the friends data being taken from friends.js
 var friendsData = require("../data/friends.js");
+var _ = require("lodash");
 
-console.log(friendsData);
-module.exports = function(app) {
-  app.get("/api/friends", function(req, res) {
-    console.log("retreiving friends!");
-    res.json(friendsData);
+module.exports = function (app) {
+  
+  app.get("/api/friends", function (req, res) {
+      res.json(friendsData);
   });
-  app.post("/api/friends", function(req, res) {
-    console.log('saving a new friend!');
-    friendsData.push(req.body);
-    console.log(friendsData);
-    res.json(friendsData);
-    friendsData.push(req.body);
-    var friend = {
-      name: req.body.name,
-      photo: req.body.photo,
-      scores: req.body.scores
-    };
-    console.log(friend);
+
+  
+  app.post("/api/friends", function (req, res) {
+      var scores = req.body.scores;
+      var compareScores = [];
+
+      friendsData.forEach(function (friend) {
+          var friendScore = 0;
+
+          friend.scores.forEach(function (score, num) {
+              friendScore = friendScore + Math.abs(score - parseInt(scores[num]));
+          });
+
+          compareScores.push({
+              "friend": friend,
+              "score": friendScore
+          });
+      });
+
+      // Using lodash, sort through all the scores and look for the lowest value to the highest
+      // "Shift()" method removes the first element from an array and returns that element
+      res.json(_.sortBy(compareScores, "score").shift());
   });
-}
+
+  app.post("/api/clear", function () {
+      // Empty/clear out the arrays of data
+      friendsData = [];
+  });
+};
+
+
+
+
+
